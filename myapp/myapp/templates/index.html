@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <div class="account-btns">
+        {% if user.is_authenticated %}
+            <p style="color: #344E41; font-size: 20px; margin-top: auto;">hey {{ user.username }} :)</p>
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'signup' %}">Sign Up</a>
+        {% endif %}
+    </div>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <img src="{% static 'logo.png' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#fasted").on("click", function() {
+                $.ajax({
+                    url: "{% url 'decrease' %}",
+                    type: "GET",
+                    success: function(data) {
+                        $("#completed_card h1").text(data.days_completed);
+                        $("#remaining_card h1").text(data.days_remaining);
+                    }
+                });
+            });
+
+            $("#log").on("click", function() {
+                $.ajax({
+                    url: "{% url 'increase' %}",
+                    type: "GET",
+                    success: function(data) {
+                        $("#remaining_card h1").text(data.days_remaining);
+                    }
+                });
+            });
+
+            $("#prev_month").on("click", function() {
+                $.ajax({
+                    url: "{% url 'prev_month' %}",
+                    type: "GET",
+                    success: function(data) {
+                        $(".month_year h1").text(data.month);
+                        $(".month_year p").text(data.year);
+                        $(".calendar-days").html(data.calendar_days); 
+                    }
+                });
+            });
+
+            $("#next_month").on("click", function() {
+                $.ajax({
+                    url: "{% url 'next_month' %}",
+                    type: "GET",
+                    success: function(data) {
+                        $(".month_year h1").text(data.month);
+                        $(".month_year p").text(data.year);
+                        $(".calendar-days").html(data.calendar_days);
+                    }
+                });
+            });
+
+            $("#reset-cal").on("click", function() {
+                $.ajax({
+                    url: "{% url 'reset_cal' %}",
+                    type: "GET",
+                    success: function(data) {
+                        $(".month_year h1").text(data.month);
+                        $(".month_year p").text(data.year);
+                        $(".calendar-days").html(data.calendar_days);
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function() {
+            var modal = $('#modal');
+            var modalBody = $('#modal-body');
+            var modalHeader = $('#modal-header');
+            let currentMonth = "{{ month }}"; 
+            let currentYear = "{{ year }}";
+            let currentHijri = "{{ hijri_date }}"
+            var span = $('.close');
+
+            $('.calendar-days').on('click', 'td', function() {
+                var day = $(this).text();
+                $.ajax({
+                    url: "{% url 'get_date' %}",
+                    type: "GET",
+                    success: function(data) {
+                        currentMonth = data.month;
+                        currentYear = data.year;
+                        modalHeader.text(currentMonth + ' ' + day + ', ' + currentYear);
+                        modal.show();
+                        $('.calendar').addClass('modal-open');
+                    }.bind(this) 
+                });
+                $.ajax({
+                    url: "{% url 'get_hijri' %}",
+                    type: "GET",
+                    data: { day: day },
+                    success: function(data) {
+                        currentHijri = data.hijri_date;
+                        modalBody.text('Hijri Date: ' + currentHijri);
+                        modal.show();
+                        $('.calendar').addClass('modal-open');
+                    }.bind(this) 
+                });
+            });
+
+
+            span.on('click', function() {
+                modal.hide();
+                $('.calendar').removeClass('modal-open');
+            });
+
+            $(window).on('click', function(event) {
+                if ($(event.target).is('.modal')) {
+                    modal.hide();
+                    $('.calendar').removeClass('modal-open');
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="cards">
+        <div id="completed_card">
+            <h1>{{ days_completed }}</h1>
+            <p>{{ completed }}</p>
+        </div>
+
+        <div id="remaining_card">
+            <h1>{{ days_remaining }}</h1>
+            <p>{{ remaining }}</p>
+        </div>
+    </div>
+
+    <div class="date">
+        <div id="prev_month">
+            <button> {{ prev_month }} </button>
+        </div>
+
+        <div class="month_year">
+            <h1>{{ month }}</h1>
+            <p>{{ year }}</p>
+            <div id="reset-cal">
+                <button>{{ reset_calendar }}</button>
+            </div>
+        </div>
+
+        <div id="next_month">
+            <button> {{ next_month }} </button>
+        </div>
+    </div>
+
+    <div class="calendar">
+        <div class="days">
+            <div id="sun">
+                <h1>{{ sun }}</h1>
+            </div>
+            <div id="mon">
+                <h1>{{ mon }}</h1>
+            </div>
+            <div id="tue">
+                <h1>{{ tue }}</h1>
+            </div>
+            <div id="wed">
+                <h1>{{ wed }}</h1>
+            </div>
+            <div id="thu">
+                <h1>{{ thu }}</h1>
+            </div>
+            <div id="fri">
+                <h1>{{ fri }}</h1>
+            </div>
+            <div id="sat">
+                <h1>{{ sat }}</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-days">
+        {{ calendar_days|safe }}
+    </div>
+
+    <div class="buttons">
+        <div id="fasted">
+            <button>{{ fasted }}</button>
+        </div>
+
+        <div id="log">
+            <button>{{ log }}</button>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-header"></h2>
+            <p id="modal-body"></p>
+        </div>
+    </div>
+
+</body>
+</html>
