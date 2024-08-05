@@ -10,8 +10,8 @@ Follow these steps to set up and run the project on your local machine.
 First, clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/yourrepositoryname.git
-cd yourrepositoryname
+git clone https://github.com/salamaaya/fasted.git
+cd fasted
 ```
 
 ### 2. Install Dependencies
