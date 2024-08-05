@@ -12,18 +12,25 @@ First, clone this repository to your local machine:
 ```bash
 git clone https://github.com/yourusername/yourrepositoryname.git
 cd yourrepositoryname
+```
 
 ### 2. Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
 ### 3. Apply Migrations
 
+```bash
 python manage.py migrate
+```
 
 ### 4. Run the Development Server
 
+```bash
 python manage.py runserver
+```
 
 ### Additional Information
 External Package (pyIslam): This package is used for Islamic calendar functionalities. Refer to the pyIslam documentation for more details.
