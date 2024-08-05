@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'accounts.css' %}">
+</head>
+<body>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <div class="imgcontainer">
+      <img src="{% static 'logo.png' %}" alt="logo" class="logo">
+    </div>
+    <div class="container">
+      <label for="id_username"><b>Username</b></label>
+          <input type="text" id="id_username" placeholder="Enter Username" name="username" required>
+
+          <label for="id_password1"><b>Password</b></label>
+          <input type="password" id="id_password1" placeholder="Enter Password" name="password1" required>
+          
+      <button type="submit" id="login">Login</button>
+      <label>
+        <input type="checkbox" checked="checked" name="remember"> Remember me
+      </label>
+    </div>
+
+    <div class="container">
+      <a href="{% url 'index' %}">Cancel</a>
+      <a href="{% url 'signup' %}">Signup</a>
+    </div>
+  </form>
+</body>
+</html>
