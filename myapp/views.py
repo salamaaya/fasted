@@ -41,6 +41,9 @@ context = {
         'next_month': '>',
         'hijri_date': HIJRI_DATE,
         'reset_calendar': 'jump to today',
+        'user_taken': '',
+        'password_mismatch': '',
+        'invalid_user': '',
     }
 
 def update_user(request):
@@ -144,6 +147,7 @@ def get_hijri(request):
 
 def user_login(request):
     global COMPLETED, REMAINING
+    context['no_invalid'] = ""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password1')
@@ -166,10 +170,13 @@ def user_login(request):
             return redirect(index)
         else:
             messages.error(request, "Invalid username or password.")
-            return render(request, 'login.html')
+            context['invalid_user'] = "Invalid username or password, try again!"
+            return render(request, 'login.html', context)
     return render(request, 'login.html')
 
 def signup(request):
+    context['password_mismatch'] = ""
+    context['user_taken'] = ""
     if request.method == "POST":
         username = request.POST.get('username')
         password1 = request.POST.get('password1')
@@ -177,11 +184,15 @@ def signup(request):
 
         if CustomUser.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
-            return render(request, 'signup.html')
+            context['user_taken'] = "Username is taken, try again!"
+            context['password_mismatch'] = ""
+            return render(request, 'signup.html', context)
         
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'signup.html')
+            context['password_mismatch'] = "Passwords do not match, try again!"
+            context['user_taken'] = ""
+            return render(request, 'signup.html', context)
 
         try:
             user = CustomUser.objects.create_user(username=username, password=password1)
@@ -199,7 +210,7 @@ def signup(request):
             return redirect(index)
         except Exception as e:
             messages.error(request, f"An error occurred: {e}")
-            return render(request, 'signup.html')
+            return render(request, 'signup.html', context)
     
     return render(request, 'signup.html')
 
@@ -217,6 +228,9 @@ def user_logout(request):
 
 def index(request):
     global COMPLETED, REMAINING
+    context['password_mismatch'] = ""
+    context['user_taken'] = ""
+    context['invalid_user'] = ""
     if request.user.is_authenticated:
         current_user = request.user
         COMPLETED = current_user.completed_days
