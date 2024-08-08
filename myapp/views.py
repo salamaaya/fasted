@@ -61,18 +61,22 @@ def get_lat_long(country, city):
 
             longitude = location.longitude
             latitude = location.latitude
-            tf = TimezoneFinder()
 
-            tzn = tf.timezone_at(lng=longitude, lat=latitude)
+            tz_finder = TimezoneFinder()
+            timezone_str = tz_finder.timezone_at(lat=latitude, lng=longitude)
 
-            tz = pytz.timezone(tzn)
-            dt = datetime.utcnow()
 
-            offset_seconds = tz.utcoffset(dt).seconds
+            if not timezone_str:
+                raise ValueError(f"Timezone for coordinates ({latitude}, {longitude}) not found.")
+            
+            timezone = pytz.timezone(timezone_str)
+            
+            now = datetime.now()
+            
+            offset = timezone.utcoffset(now).seconds / 3600
+            print("TEST")
 
-            offset_hours = offset_seconds / 3600.0
-
-            return [latitude,  longitude, int(offset_hours)]
+            return [latitude,  longitude, int(offset)]
     except:
         return None
         
@@ -95,7 +99,7 @@ def locate_user(request):
                     current_user.save()
 
                     context['current_loc'] = "Current Location: " + city + ", " + country
-
+                    
                 return redirect('index')
             else:
                 return render(request, 'locate.html', context)
