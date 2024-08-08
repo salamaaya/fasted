@@ -6,6 +6,7 @@
     <div class="account-btns">
         {% if user.is_authenticated %}
             <p style="color: #344E41; font-size: 20px; margin-top: auto;">hey {{ user.username }} :)</p>
+            <a href="{% url 'locate' %}">Locate Me</a>
             <a href="{% url 'logout' %}">Logout</a>
         {% else %}
             <a href="{% url 'login' %}">Login</a>
@@ -77,7 +78,7 @@
 
         $(document).ready(function() {
             var modal = $('#modal');
-            var modalBody = $('#modal-body');
+            var modalBody = $('#hijri');
             var modalHeader = $('#modal-header');
             let currentMonth = "{{ month }}"; 
             let currentYear = "{{ year }}";
@@ -104,6 +105,21 @@
                     success: function(data) {
                         currentHijri = data.hijri_date;
                         modalBody.text('Hijri Date: ' + currentHijri);
+                        modal.show();
+                        $('.calendar').addClass('modal-open');
+                    }.bind(this) 
+                });
+                $.ajax({
+                    url: "{% url 'get_prayer' %}",
+                    type: "GET",
+                    data: { day: day },
+                    success: function(data) {
+                        $("#prayers").text("Prayer Times");
+                        $("#fajr").text('Fajr: ' + data.fajr);
+                        $("#duhr").text('Duhr: ' + data.duhr);
+                        $("#asr").text('Asr: ' + data.asr);
+                        $("#magrib").text('Magrib: ' + data.magrib);
+                        $("#isha").text('Isha: ' + data.isha);
                         modal.show();
                         $('.calendar').addClass('modal-open');
                     }.bind(this) 
@@ -201,7 +217,13 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="modal-header"></h2>
-            <p id="modal-body"></p>
+            <p id="hijri"></p>
+            <h2 id="prayers"></h2>
+            <p id="fajr">{{ fajr }}</p>
+            <p id="duhr">{{ duhr }}</p>
+            <p id="asr">{{ asr }}</p>
+            <p id="magrib">{{ magrib }}</p>
+            <p id="isha">{{ isha }}</p>
         </div>
     </div>
 

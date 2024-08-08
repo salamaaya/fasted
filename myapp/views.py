@@ -3,9 +3,14 @@ from datetime import datetime, date
 import calendar
 from django.http import JsonResponse
 from pyIslam.hijri import HijriDate
+from pyIslam.praytimes import PrayerConf, Prayer
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from myapp.models import CustomUser
+from geopy.geocoders import Nominatim
+import pytz
+from datetime import datetime
+from timezonefinder import TimezoneFinder
 
 MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
 COMPLETED = 0
@@ -44,7 +49,89 @@ context = {
         'user_taken': '',
         'password_mismatch': '',
         'invalid_user': '',
+        'current_loc': '',
     }
+
+def get_lat_long(country, city):
+    geolocator = Nominatim(user_agent='myapp')  
+    city_country = city + ", " + country
+    try:
+        location = geolocator.geocode(city_country)
+        if location:
+
+            longitude = location.longitude
+            latitude = location.latitude
+            tf = TimezoneFinder()
+
+            tzn = tf.timezone_at(lng=longitude, lat=latitude)
+
+            tz = pytz.timezone(tzn)
+            dt = datetime.utcnow()
+
+            offset_seconds = tz.utcoffset(dt).seconds
+
+            offset_hours = offset_seconds / 3600.0
+
+            return [latitude,  longitude, int(offset_hours)]
+    except:
+        return None
+        
+
+def locate_user(request):
+    if request.method == 'POST':
+        country = request.POST.get('country')
+        city = request.POST.get('city')
+
+        if country is not None and city is not None:
+            vals = get_lat_long(country, city)
+            if vals is not None:
+                current_user = request.user
+                if current_user.is_authenticated:
+                    current_user.country = country
+                    current_user.city = city
+                    current_user.latitude = vals[0]
+                    current_user.longitude = vals[1]
+                    current_user.timezone = vals[2]
+                    current_user.save()
+
+                    context['current_loc'] = "Current Location: " + city + ", " + country
+
+                return redirect('index')
+            else:
+                return render(request, 'locate.html', context)
+    return render(request, 'locate.html', context)
+
+def get_prayer(request):
+    current_user = request.user
+    if current_user.is_authenticated:
+        if current_user.country == "" and current_user.city == "":
+            return JsonResponse({
+                'fajr': 'Locate yourself first!',
+                'duhr': 'Locate yourself first!', 
+                'asr': 'Locate yourself first!',
+                'magrib': 'Locate yourself first!',
+                'isha': 'Locate yourself first!',
+            }) 
+        conf = PrayerConf(current_user.longitude, current_user.latitude, current_user.timezone)
+        day = int(request.GET.get('day'))
+        dat = datetime(YEAR, MONTH, day)
+        prayer = Prayer(conf, dat)
+        
+        return JsonResponse({
+            'fajr': prayer.fajr_time(),
+            'duhr': prayer.dohr_time(), 
+            'asr': prayer.asr_time(),
+            'magrib': prayer.maghreb_time(),
+            'isha': prayer.ishaa_time(),
+        })
+    
+    return JsonResponse({
+            'fajr': 'Login to locate yourself!',
+            'duhr': 'Login to locate yourself!', 
+            'asr': 'Login to locate yourself!',
+            'magrib': 'Login to locate yourself!',
+            'isha': 'Login to locate yourself!',
+        }) 
 
 def update_user(request):
     current_user = request.user
@@ -126,7 +213,7 @@ def get_remaining():
     return str(REMAINING)
 
 def get_hijri(request):
-    day = int(request.GET.get('day')) + 2
+    day = int(request.GET.get('day'))
     month = MONTH
     year = YEAR
     
@@ -223,6 +310,7 @@ def user_logout(request):
     request.session.set_expiry(0) 
     context['days_completed'] = get_completed()
     context['days_remaining'] = get_remaining()
+    context['current_loc'] = ""
     return redirect(index)
     
 
@@ -237,4 +325,5 @@ def index(request):
         REMAINING = current_user.remaining_days
         context['days_completed'] = get_completed()
         context['days_remaining'] = get_remaining()
+        context['current_loc'] = "Current Location: " + current_user.city + ", " + current_user.country
     return render(request, 'index.html', context)

@@ -8,8 +8,6 @@ body {
 
 .date {
     color: #344E41;
-    /* padding-left: 200px; */
-    /* padding-top: -30px; */
     margin-top: -20px;
     display: inline-flex;
     justify-content: center;
@@ -276,6 +274,8 @@ td:hover:after {
 .modal {
     display: none; 
     position: fixed;
+    justify-content: center;
+    text-align: center;
     z-index: 1;
     left: 0;
     top: 0;

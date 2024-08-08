@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'accounts.css' %}">
+</head>
+<body>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <div class="container">
+
+      {% if user.country != "" and user.city != ""%}
+        <p> Current Location: {{ user.city }}, {{ user.country }} </p>
+      {% endif %}
+      
+      <label for="country"><b>Country</b></label>
+      <input type="text" id="country" placeholder="Country" name="country" required>
+
+      <label for="city"><b>City</b></label>
+      <input type="text" id="city" placeholder="City" name="city" required>
+          
+      <button type="submit" id="locate">Locate Me!</button>
+    </div>
+
+    <div class="container">
+      <a href="{% url 'index' %}">Cancel</a>
+    </div>
+  </form>
+</body>
+</html>
